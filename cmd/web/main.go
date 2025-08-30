@@ -1,14 +1,20 @@
 package main
 
 import (
-
+	"flag"
 	"log"
 	"net/http"
-
 )
 
 
 func main(){
+
+	// rather than using hardcoded address to use for the server , let's take the address from the command line flag
+
+	// addr is a string type pointer that stores address to a string storing the value of the flag passed in the command line
+	addr := flag.String("addr" , ":4000" , "HTTP network address")
+
+	flag.Parse()
 
 	mux := http.NewServeMux()
 
@@ -27,9 +33,9 @@ func main(){
 	// POST request
 	mux.HandleFunc("POST /snippet/create" , snippetCreatePost)
 
-	log.Print("starting server on http://localhost:8080/")
+	log.Printf("starting server on , http://localhost%s/" , *addr)
 
-	err := http.ListenAndServe(":8080" , mux)
+	err := http.ListenAndServe(*addr , mux)
 	if err!= nil{
 		log.Fatal(err)
 	}
