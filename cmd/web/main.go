@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 )
 
 
@@ -15,6 +16,15 @@ func main(){
 	addr := flag.String("addr" , ":4000" , "HTTP network address")
 
 	flag.Parse()
+
+	// add a custom logger to our application for CLI output instead of using the default logger for the desired outcome
+	// ✅logger := slog.New(slog.NewTextHandler(os.Stdout , nil))
+
+	// we can modify this further and add what more info we want in our output
+	logger := slog.New(slog.NewJSONHandler(os.Stdout , &slog.HandlerOptions{
+		Level: slog.LevelDebug ,
+		AddSource: true,
+	}))
 
 	mux := http.NewServeMux()
 
@@ -33,11 +43,16 @@ func main(){
 	// POST request
 	mux.HandleFunc("POST /snippet/create" , snippetCreatePost)
 
-	log.Printf("starting server on , http://localhost%s/" , *addr)
+	// take the HTTP address we got from terminal and show an output message using the custom logger and start the server
+	//1️⃣ logger.Info("Starting server on " , "addr" , *addr)
+	// 2️⃣ instead of providing the hashmap's key-value pairs like above in a variadic manner , we can use different slog.<data_type>() methods for safer data passing and parsing
+	logger.Info("request received" , slog.String("addr" , ":4000"))
 
 	err := http.ListenAndServe(*addr , mux)
 	if err!= nil{
-		log.Fatal(err)
+		logger.Error(err.Error())
+		// log's Fatal() usually exits the program which is usually abstracted from the user . But as we're using our custom logger , we need to terminate our application manually by using the os.Exit(1) , here the 1 is a flag of saying the code was terminated with an error
+		os.Exit(1)
 	}
 
 }
