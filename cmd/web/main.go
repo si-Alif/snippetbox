@@ -7,6 +7,11 @@ import (
 	"os"
 )
 
+// Define an application struct to hold the dependencies for our application used through out our entire application
+type application struct {
+	logger *slog.Logger
+}
+
 
 func main(){
 
@@ -26,6 +31,10 @@ func main(){
 		AddSource: true,
 	}))
 
+	app := &application{
+		logger : logger,
+	}
+
 	mux := http.NewServeMux()
 
 	//create a file server which will serve contents from the ./ui/static directory
@@ -36,12 +45,12 @@ func main(){
 	// a request to /static/favicon.ico --> stripped /static --> result /favicon.ico went to file_server
 	// --> file_server looks up at ./ui/static/favicon.ico
 
-	mux.HandleFunc("GET /{$}" , home)
-	mux.HandleFunc("GET /snippet/view/{id}" , snippetView)
-	mux.HandleFunc("GET /snippet/create" , snippetCreate)
+	mux.HandleFunc("GET /{$}" , app.home)
+	mux.HandleFunc("GET /snippet/view/{id}" , app.snippetView)
+	mux.HandleFunc("GET /snippet/create" , app.snippetCreate)
 
 	// POST request
-	mux.HandleFunc("POST /snippet/create" , snippetCreatePost)
+	mux.HandleFunc("POST /snippet/create" , app.snippetCreatePost)
 
 	// take the HTTP address we got from terminal and show an output message using the custom logger and start the server
 	//1️⃣ logger.Info("Starting server on " , "addr" , *addr)

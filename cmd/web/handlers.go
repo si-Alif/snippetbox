@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 )
 
-func home(w http.ResponseWriter , r *http.Request){
+func (app *application) home(w http.ResponseWriter , r *http.Request){
 
 	w.Header().Add("Server" , "Go Web Server")
 
@@ -21,7 +20,7 @@ func home(w http.ResponseWriter , r *http.Request){
 	tmpl , err := template.ParseFiles(files...)
 
 	if err != nil {
-		log.Println(err.Error())
+		app.logger.Error(err.Error() , "method" , r.Method , "uri" , r.URL.RequestURI() )
 		http.Error(w , "Internal server error while parsing a static file ..." , http.StatusInternalServerError)
 		return
 	}
@@ -29,14 +28,14 @@ func home(w http.ResponseWriter , r *http.Request){
 	tmpl_err  := tmpl.ExecuteTemplate(w , "base", nil)
 
 	if tmpl_err != nil {
-		log.Println(tmpl_err.Error())
+		app.logger.Error(err.Error() , "method" , r.Method , "uri" , r.URL.RequestURI())
 		http.Error(w , "Internal Server Error ..." , http.StatusInternalServerError)
 	}
 
 }
 
 // view snippet
-func snippetView(w http.ResponseWriter , r *http.Request){
+func (app	*application) snippetView(w http.ResponseWriter , r *http.Request){
 
 	id , err := strconv.Atoi(r.PathValue("id"))
 
@@ -50,11 +49,11 @@ func snippetView(w http.ResponseWriter , r *http.Request){
 }
 
 //create snippet
-func snippetCreate(w http.ResponseWriter , r *http.Request){
+func (app *application) snippetCreate(w http.ResponseWriter , r *http.Request){
 	fmt.Fprintln(w , "Display a form to create a new snippet...")
 }
 
-func snippetCreatePost(w http.ResponseWriter , r *http.Request){
+func (app *application) snippetCreatePost(w http.ResponseWriter , r *http.Request){
 
 	w.WriteHeader(http.StatusCreated)
 
