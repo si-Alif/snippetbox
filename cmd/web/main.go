@@ -35,29 +35,19 @@ func main(){
 		logger : logger,
 	}
 
-	mux := http.NewServeMux()
 
-	//create a file server which will serve contents from the ./ui/static directory
-	file_server := http.FileServer(http.Dir("./ui/static/")) // this will a sub-tree path
-
-	// now we need to use the file_server server as the handler for serving file whenever there's a request to a endpoint with prefix /static/
-	mux.Handle("GET /static/" , http.StripPrefix("/static" , file_server))
-	// a request to /static/favicon.ico --> stripped /static --> result /favicon.ico went to file_server
-	// --> file_server looks up at ./ui/static/favicon.ico
-
-	mux.HandleFunc("GET /{$}" , app.home)
-	mux.HandleFunc("GET /snippet/view/{id}" , app.snippetView)
-	mux.HandleFunc("GET /snippet/create" , app.snippetCreate)
-
-	// POST request
-	mux.HandleFunc("POST /snippet/create" , app.snippetCreatePost)
 
 	// take the HTTP address we got from terminal and show an output message using the custom logger and start the server
 	//1️⃣ logger.Info("Starting server on " , "addr" , *addr)
 	// 2️⃣ instead of providing the hashmap's key-value pairs like above in a variadic manner , we can use different slog.<data_type>() methods for safer data passing and parsing
 	logger.Info("request received" , slog.String("addr" , ":4000"))
 
-	err := http.ListenAndServe(*addr , mux)
+	// formerly , all the routes were configured here and the serveMux that was containing all them was passed here
+	// err := http.ListenAndServe(*addr , mux)
+
+	// as the route is now abstracted , we now store call the routes() method which returns a pointer to a serveMux containing all the routes 
+	err := http.ListenAndServe(*addr , app.routes())
+
 	if err!= nil{
 		logger.Error(err.Error())
 		// log's Fatal() usually exits the program which is usually abstracted from the user . But as we're using our custom logger , we need to terminate our application manually by using the os.Exit(1) , here the 1 is a flag of saying the code was terminated with an error

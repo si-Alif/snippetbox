@@ -20,16 +20,17 @@ func (app *application) home(w http.ResponseWriter , r *http.Request){
 	tmpl , err := template.ParseFiles(files...)
 
 	if err != nil {
+		// error handling using custom logger and error handler
 		app.logger.Error(err.Error() , "method" , r.Method , "uri" , r.URL.RequestURI() )
-		http.Error(w , "Internal server error while parsing a static file ..." , http.StatusInternalServerError)
+		app.serverError(w , r , err)
 		return
 	}
 
 	tmpl_err  := tmpl.ExecuteTemplate(w , "base", nil)
 
 	if tmpl_err != nil {
-		app.logger.Error(err.Error() , "method" , r.Method , "uri" , r.URL.RequestURI())
-		http.Error(w , "Internal Server Error ..." , http.StatusInternalServerError)
+		app.logger.Error(tmpl_err.Error() , "method" , r.Method , "uri" , r.URL.RequestURI())
+		app.serverError(w, r , tmpl_err)
 	}
 
 }
