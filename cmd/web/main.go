@@ -7,12 +7,14 @@ import (
 	"net/http"
 	"os"
 
+	"snippetbox._alif__.net/internal/models"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 // Define an application struct to hold the dependencies for our application used through out our entire application
 type application struct {
 	logger *slog.Logger
+	snippets *models.SnippetModel
 }
 
 
@@ -36,6 +38,7 @@ func main(){
 		AddSource: true,
 	}))
 
+	// opens the db connection and stores the connection pool in the db variable
 	db , err := openDB(*dsn)
 
 	if err != nil {
@@ -43,17 +46,19 @@ func main(){
 		os.Exit(1)
 	}
 
+	// close the db connection
 	defer db.Close()
 
 	app := &application{
 		logger : logger,
+		snippets : &models.SnippetModel{DB: db}, // create a new instance of the SnippetModel struct with the connection pool as the DB field
 	}
 
 
 	// take the HTTP address we got from terminal and show an output message using the custom logger and start the server
 	//1️⃣ logger.Info("Starting server on " , "addr" , *addr)
 	// 2️⃣ instead of providing the hashmap's key-value pairs like above in a variadic manner , we can use different slog.<data_type>() methods for safer data passing and parsing
-	logger.Info("request received" , slog.String("addr" , ":4000"))
+	logger.Info("Starting server on :- " , slog.String("addr" , ":4000"))
 
 	// formerly , all the routes were configured here and the serveMux that was containing all them was passed here
 	// err := http.ListenAndServe(*addr , mux)
