@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
-	"snippetbox.__alif_.net/internal/models"
+	"snippetbox._alif__.net/internal/models"
 
 )
 
@@ -48,7 +48,19 @@ func (app	*application) snippetView(w http.ResponseWriter , r *http.Request){
 		return
 	}
 
-	fmt.Fprintf(w , "Display a specific snippet with id  %d" , id)
+	snippet , err := app.snippets.Get(id)
+
+	if err != nil {
+		if(errors.Is(err , models.ErrNoRecord)){
+			http.NotFound(w ,r )
+		}else {
+			app.serverError(w , r , err)
+		}
+
+		return
+	}
+
+	fmt.Fprintf(w , "%v" , snippet) // write the response data in plain-text http response
 
 }
 
