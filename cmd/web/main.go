@@ -11,7 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// Define an application struct to hold the dependencies for our application used through out our entire application
+// Define an application struct to hold the dependencies for our application used through out our entire application using struct embedding . This works as central class maintain all the dependencies of our application in a single place (Singleton Pattern applied)
 type application struct {
 	logger *slog.Logger
 	snippets *models.SnippetModel
@@ -58,7 +58,7 @@ func main(){
 	// take the HTTP address we got from terminal and show an output message using the custom logger and start the server
 	//1️⃣ logger.Info("Starting server on " , "addr" , *addr)
 	// 2️⃣ instead of providing the hashmap's key-value pairs like above in a variadic manner , we can use different slog.<data_type>() methods for safer data passing and parsing
-	logger.Info("Starting server on :- " , slog.String("addr" , ":4000"))
+	logger.Info("Starting server on :- " , slog.String("addr" , *addr))
 
 	// formerly , all the routes were configured here and the serveMux that was containing all them was passed here
 	// err := http.ListenAndServe(*addr , mux)

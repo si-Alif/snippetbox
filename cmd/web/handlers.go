@@ -1,11 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
-	
+	"snippetbox.__alif_.net/internal/models"
+
 )
 
 func (app *application) home(w http.ResponseWriter , r *http.Request){
@@ -57,9 +59,18 @@ func (app *application) snippetCreate(w http.ResponseWriter , r *http.Request){
 
 func (app *application) snippetCreatePost(w http.ResponseWriter , r *http.Request){
 
-	w.WriteHeader(http.StatusCreated)
+	title := "O snail"
+	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
+	expires := 7
 
-	msg := "Creating a snippet in the storage...."
-	fmt.Fprintln(w , msg)
+	id , err := app.snippets.Insert(title , content , expires)
+
+	if err != nil{
+		app.serverError(w , r , err)
+		return
+	}
+
+	// if the snippet is created successfully , redirect the user to view this snippet
+	http.Redirect(w , r , fmt.Sprintf("/snippet/view/%d" , id) , http.StatusSeeOther)
 
 }
