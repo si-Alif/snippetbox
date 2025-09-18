@@ -105,8 +105,43 @@ func (mysql *SnippetModel) Get(id int) (Snippet , error){
 
 }
 
-func (m *SnippetModel) Latest() ([]Snippet , error){
-	return nil , nil
+// get latest 10 snippets from the database
+func (mysql *SnippetModel) Latest() ([]Snippet , error){
+	stmnt :=  `SELECT id , title , content , created , expires FROM snippets WHERE expires > UTC_TIMESTAMP() ORDER BY id DESC LIMIT 10`
+
+	rows , err := mysql.DB.Query(stmnt)
+
+	if err != nil {
+		return nil , err
+	}
+
+	defer rows.Close() // close the sql.Rows() connection stream before returning from the function
+
+	var snippets []Snippet
+
+
+	// rows.Next() returns true if there are more rows to read and false otherwise . Inside the loop , we use the Scan() method to populate the snippet struct with the data from the current iteration row . Once there's no more rows to read , the loop ends automatically
+	for rows.Next(){
+		var s Snippet
+
+		err := rows.Scan(&s.ID , &s.Title  , &s.Content , &s.Created , &s.Expires)
+
+		if err != nil {
+			return nil , err
+		}
+
+		snippets = append(snippets, s)
+
+	}
+
+	// ⭐ Once the iteration is over make sure to check for the possible error during populating the dataset . Just because the iteration was successful , doesn't mean there was no error while populating the dataset
+
+	if err = rows.Err(); err != nil{
+		return nil , err
+	}
+
+	return snippets , nil
+
 }
 
 // now we need to inject this SnippetModel wrapper struct into our application in main() function
