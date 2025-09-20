@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	// "html/template"
+	"html/template"
 	"net/http"
 	"strconv"
 	"snippetbox._alif__.net/internal/models"
@@ -70,7 +70,31 @@ func (app	*application) snippetView(w http.ResponseWriter , r *http.Request){
 		return
 	}
 
-	fmt.Fprintf(w , "%v" , snippet) // write the response data in plain-text http response
+	// don't need this anymore . Will generate SSR pages now .
+	// fmt.Fprintf(w , "%v" , snippet) // write the response data in plain-text http response
+
+	files := []string{
+		"./ui/html/base.tmpl.html",
+		"./ui/html/partials/nav.tmpl.html",
+		"./ui/html/pages/view.tmpl.html",
+	}
+
+	ts , err := template.ParseFiles(files...)
+
+	data := template_data{
+		Snippet: snippet,
+	}
+
+	if err!= nil {
+		app.serverError(w , r , err)
+		return
+	}
+
+	err = ts.ExecuteTemplate(w , "base" , data)
+
+	if err != nil {
+		app.serverError(w, r , err)
+	}
 
 }
 
