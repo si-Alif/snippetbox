@@ -20,31 +20,29 @@ func (app *application) home(w http.ResponseWriter , r *http.Request){
 		app.serverError(w , r , err)
 	}
 
-	for _ , snippet := range snippets{
-		fmt.Fprintf(w , "%v\n" , snippet)
+
+	files := []string{
+		"./ui/html/base.tmpl.html",
+		"./ui/html/partials/nav.tmpl.html",
+		"./ui/html/pages/home.tmpl.html",
 	}
 
-	// files := []string{
-	// 	"./ui/html/base.tmpl.html",
-	// 	"./ui/html/partials/nav.tmpl.html",
-	// 	"./ui/html/pages/home.tmpl.html",
-	// }
+	tmpl , err := template.ParseFiles(files...)
 
-	// tmpl , err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w  ,r , err)
+		return
+	}
 
-	// if err != nil {
-	// 	// error handling using custom logger and error handler
-	// 	app.logger.Error(err.Error() , "method" , r.Method , "uri" , r.URL.RequestURI() )
-	// 	app.serverError(w , r , err)
-	// 	return
-	// }
+	data := template_data{
+		Snippets : snippets,
+	}
 
-	// tmpl_err  := tmpl.ExecuteTemplate(w , "base", nil)
+	err = tmpl.ExecuteTemplate(w, "base" , data)
 
-	// if tmpl_err != nil {
-	// 	app.logger.Error(tmpl_err.Error() , "method" , r.Method , "uri" , r.URL.RequestURI())
-	// 	app.serverError(w, r , tmpl_err)
-	// }
+	if err != nil{
+		app.serverError(w, r, err)
+	}
 
 }
 

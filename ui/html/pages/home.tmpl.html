@@ -4,7 +4,29 @@
 
 {{define "main"}}
 
-<h2>Latest Snippets</h2>
-<p>There's nothing to observe here yet...</p>
+  <h2>Latest Snippets</h2>
+
+<!-- Write a iffy block to check whether the Snippets slice is empty or not -->
+
+  {{if .Snippets}}
+    <table>
+      <tr>
+        <th>Title</th>
+        <th>Created</th>
+        <th>ID</th>
+      </tr>
+      <!-- Iterate over all the snippets in the slice . On each iterator the index element is assigned to the variable "." -->
+      {{range .Snippets}}
+        <tr>
+          <td>{{.Title}}</td>
+          <td>{{.Created}}</td>
+          <td>{{.ID}}</td>
+        </tr>
+      {{end}} <!--- end of iteration -->
+    </table>
+  {{else}}
+    <p>There's no snippet to show for now ....</p>
+  {{end}} <!--End of iffy block-->
 
 {{end}}
+
