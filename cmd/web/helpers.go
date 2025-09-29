@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -35,12 +36,19 @@ func (app *application) render(w http.ResponseWriter , r *http.Request , status 
 		return
 	}
 
-	w.WriteHeader(status) // return response header based on the status code . For instance "200 OK"(success) or "404 Not Found"(when the user tried to do something wrong , server failed then this error page might be rendered with this status code)
-
-	err:= ts.ExecuteTemplate(w , "base" , data)
+	// To avoid runtime errors , first of all execute the template in a buffer and based on output decide whether to render that template or not
+	buf := new(bytes.Buffer)
+	// Execute the template with the data and store the output in the buffer
+	err := ts.ExecuteTemplate(buf , "base" , data)
 
 	if err != nil {
 		app.serverError(w , r , err)
+		return
 	}
+
+	w.WriteHeader(status) // return response header based on the status code . For instance "200 OK"(success) or "404 Not Found"(when the user tried to do something wrong , server failed then this error page might be rendered with this status code)
+
+	// if the buffer was correct just write it to the response writer 
+	buf.WriteTo(w)
 
 }
