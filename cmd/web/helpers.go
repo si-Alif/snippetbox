@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"time"
 )
 
 // to log server side error
@@ -48,7 +49,14 @@ func (app *application) render(w http.ResponseWriter , r *http.Request , status 
 
 	w.WriteHeader(status) // return response header based on the status code . For instance "200 OK"(success) or "404 Not Found"(when the user tried to do something wrong , server failed then this error page might be rendered with this status code)
 
-	// if the buffer was correct just write it to the response writer 
+	// if the buffer was correct just write it to the response writer
 	buf.WriteTo(w)
 
 }
+
+func (app *application) new_template_date(r *http.Request) template_data{
+	return template_data{
+		Current_year: time.Now().Year(),
+	}
+}
+
