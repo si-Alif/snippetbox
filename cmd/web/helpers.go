@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"runtime/debug"
 )
@@ -24,3 +25,22 @@ func (app *application) clientError(w http.ResponseWriter , status int){
 	http.Error(w, http.StatusText(status) , status)
 }
 
+
+func (app *application) render(w http.ResponseWriter , r *http.Request , status int , page string , data template_data){
+	ts , ok := app.template_cache[page] // check if the page is in the cache
+
+	if !ok{
+		err := fmt.Errorf("the template %s is not cached" , page)
+		app.serverError(w , r , err)
+		return
+	}
+
+	w.WriteHeader(status) // return response header based on the status code . For instance "200 OK"(success) or "404 Not Found"(when the user tried to do something wrong , server failed then this error page might be rendered with this status code)
+
+	err:= ts.ExecuteTemplate(w , "base" , data)
+
+	if err != nil {
+		app.serverError(w , r , err)
+	}
+
+}
