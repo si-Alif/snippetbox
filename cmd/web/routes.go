@@ -1,6 +1,9 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+	"github.com/justinas/alice"
+)
 
 // Here we centralized all our routes in the routes() methods of our application struct .
 // Once called , routes() returns a pointer to a serveMux containing all the routes of our application
@@ -26,6 +29,10 @@ func (app *application) routes() http.Handler{ // as it will passed in a middlew
 	// POST request
 	mux.HandleFunc("POST /snippet/create" , app.snippetCreatePost)
 
-	return app.logRequest(commonHeaders(mux)) // returns a http.Handler
+	// return app.recoverPanic(app.logRequest(commonHeaders(mux))) // returns a http.Handler
+
+	standard := alice.New(app.recoverPanic , app.logRequest , commonHeaders)
+
+	return standard.Then(mux)
 
 }
