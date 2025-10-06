@@ -26,6 +26,6 @@ func (app *application) routes() http.Handler{ // as it will passed in a middlew
 	// POST request
 	mux.HandleFunc("POST /snippet/create" , app.snippetCreatePost)
 
-	return commonHeaders(mux) // returns a http.Handler
+	return app.logRequest(commonHeaders(mux)) // returns a http.Handler
 
 }
