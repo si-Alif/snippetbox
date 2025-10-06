@@ -5,7 +5,9 @@ import "net/http"
 // Here we centralized all our routes in the routes() methods of our application struct .
 // Once called , routes() returns a pointer to a serveMux containing all the routes of our application
 
-func (app *application) routes() *http.ServeMux {
+// func (app *application) routes() *http.ServeMux {
+
+func (app *application) routes() http.Handler{ // as it will passed in a middleware and they work on return and input type of http.Handler only that's why we returned http.Handler instead of *http.ServeMux which was configured before
 
 	mux := http.NewServeMux()
 
@@ -24,6 +26,6 @@ func (app *application) routes() *http.ServeMux {
 	// POST request
 	mux.HandleFunc("POST /snippet/create" , app.snippetCreatePost)
 
-	return mux
+	return commonHeaders(mux) // returns a http.Handler
 
 }
