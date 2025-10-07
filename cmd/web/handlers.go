@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"snippetbox._alif__.net/internal/models"
+	"strings"
+	"unicode/utf8"
 
+	"snippetbox._alif__.net/internal/models"
 )
 
 func (app *application) home(w http.ResponseWriter , r *http.Request){
@@ -63,18 +65,57 @@ func (app *application) snippetCreate(w http.ResponseWriter , r *http.Request){
 
 func (app *application) snippetCreatePost(w http.ResponseWriter , r *http.Request){
 
-	title := "O snail"
-	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
-	expires := 7
+	// we're using ParseForm() as we're using form markup in the template to get the form data . This parses the form data and then stores them in http.Request instance r as PostForm() map structure .
+
+	err := r.ParseForm()
+
+	if err != nil {
+		app.clientError(w , http.StatusBadRequest)
+		return
+	}
+
+	// from the PostForm map we can retrieve the form data submitted by the user in a field (field's name attribute is the key in the map)
+	title := r.PostForm.Get("title")
+	content := r.PostForm.Get("content")
+
+	// by default , data we retrieve from the map is a string
+	// Our expires field is a number so we need to convert it to an int
+	expires  , err:= strconv.Atoi(r.PostForm.Get("expires"))
+
+	if err != nil {
+		app.clientError(w , http.StatusBadRequest)
+		return
+	}
+
+	fieldsError := make(map[string]string)
+
+	if strings.TrimSpace(title) == ""{
+		fieldsError["title"] = "This field cannot be blank"
+
+	}else if utf8.RuneCountInString(title) > 100 {
+		fieldsError["title"] = "This field cannot be more than 100 characters long"
+	}
+
+	if strings.TrimSpace(content) == ""{
+		fieldsError["content"] = "This field cannot be blank"
+
+	}
+
+	if expires != 1 && expires != 7 && expires != 365 {
+		fieldsError["expires"] = "This field must be 1 or 7 or 365"
+	}
+
+	if len(fieldsError) > 0 {
+		fmt.Fprint(w , fieldsError)
+	}
 
 	id , err := app.snippets.Insert(title , content , expires)
 
-	if err != nil{
+	if err != nil {
 		app.serverError(w , r , err)
 		return
 	}
 
-	// if the snippet is created successfully , redirect the user to view this snippet
-	http.Redirect(w , r , fmt.Sprintf("/snippet/view/%d" , id) , http.StatusSeeOther)
+	http.Redirect(w, r , fmt.Sprintf("/snippet/view/%d" , id) , http.StatusSeeOther)
 
 }
