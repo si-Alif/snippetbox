@@ -55,11 +55,14 @@ func (app	*application) snippetView(w http.ResponseWriter , r *http.Request){
 }
 
 // define a new struct to store form data validation errors of certain fields
+
+// as we added the decoder package and for it's reference where to attach certain value from the form in the struct , we added those form name & field key in the end of each one
 type snippetCreateFrom struct {
-	Title string
-	Content string
-	Expires int
-	validator.Validator // embedded validator struct which helps us validating and managing form data validation errors
+	Title string `form:"title"`
+	Content string `form:"content"`
+	Expires int `form:"expires"`
+	// embedded validator struct which helps us validating and managing form data validation errors
+	validator.Validator `form:"-"` // "-" tells decoder to ignore this field
 }
 
 //create snippet
@@ -76,30 +79,44 @@ func (app *application) snippetCreate(w http.ResponseWriter , r *http.Request){
 
 func (app *application) snippetCreatePost(w http.ResponseWriter , r *http.Request){
 
-	// we're using ParseForm() as we're using form markup in the template to get the form data . This parses the form data and then stores them in http.Request instance r as PostForm() map structure .
+	// Manual decoding & without helpers
+	//---------------------------------------------------------------
+	// // we're using ParseForm() as we're using form markup in the template to get the form data . This parses the form data and then stores them in http.Request instance r as PostForm() map structure .
 
-	err := r.ParseForm()
+	// err := r.ParseForm()
+
+	// if err != nil {
+	// 	app.clientError(w , http.StatusBadRequest)
+	// 	return
+	// }
+
+	// // by default , data we retrieve from the map is a string
+	// // Our expires field is a number so we need to convert it to an int
+	// expires  , err:= strconv.Atoi(r.PostForm.Get("expires"))
+
+	// if err != nil {
+	// 	app.clientError(w , http.StatusBadRequest)
+	// 	return
+	// }
+
+	// form := snippetCreateFrom{
+	// 	Title : r.PostForm.Get("title"),
+	// 	Content : r.PostForm.Get("content"),
+	// 	Expires : expires,
+	// }
+
+	// -----------------------------------------------------------------
+
+	var form snippetCreateFrom
+
+	err := app.decodePostForm(r , &form)
 
 	if err != nil {
 		app.clientError(w , http.StatusBadRequest)
 		return
 	}
 
-	// by default , data we retrieve from the map is a string
-	// Our expires field is a number so we need to convert it to an int
-	expires  , err:= strconv.Atoi(r.PostForm.Get("expires"))
-
-	if err != nil {
-		app.clientError(w , http.StatusBadRequest)
-		return
-	}
-
-	form := snippetCreateFrom{
-		Title : r.PostForm.Get("title"),
-		Content : r.PostForm.Get("content"),
-		Expires : expires,
-	}
-
+	
 	form.CheckField(validator.NotBlank(form.Title) , "title" , "This field cannot be blank")
 	form.CheckField(validator.MaxChars(100 , form.Title) , "title" , "Title must not be more than 100 characters long")
 	form.CheckField(validator.NotBlank(form.Content) , "content" , "This field cannot be blank")

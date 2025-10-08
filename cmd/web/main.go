@@ -9,6 +9,7 @@ import (
 	"html/template"
 
 	"snippetbox._alif__.net/internal/models"
+	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -17,6 +18,8 @@ type application struct {
 	logger *slog.Logger
 	snippets *models.SnippetModel
 	template_cache map[string]*template.Template
+	formDecoder *form.Decoder
+
 }
 
 
@@ -58,10 +61,14 @@ func main(){
 		os.Exit(1)
 	}
 
+	// using form decoder package for parsing and retrieving form data
+	formDecoder := form.NewDecoder()
+
 	app := &application{
 		logger : logger,
 		snippets : &models.SnippetModel{DB: db}, // create a new instance of the SnippetModel struct with the connection pool as the DB field
 		template_cache: template_cache, // added the cached templated in the application dependencies struct
+		formDecoder: formDecoder,
 	}
 
 

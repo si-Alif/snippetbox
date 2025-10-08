@@ -2,10 +2,14 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 	"time"
+
+	"github.com/go-playground/form/v4"
+
 )
 
 // to log server side error
@@ -60,3 +64,25 @@ func (app *application) new_template_date(r *http.Request) template_data{
 	}
 }
 
+
+func (app *application) decodePostForm(r *http.Request , dst any) error{
+	err := r.ParseForm()
+
+	if err != nil {
+		return err
+	}
+
+	err = app.formDecoder.Decode(dst , r.PostForm) // (<where to store the decoded form data> , <form data map>)
+	if err != nil {
+		var invalid_decode_error *form.InvalidDecoderError
+
+		if errors.As(err , &invalid_decode_error){
+			panic(err)
+		}
+
+		return err
+	}
+
+	return nil
+
+}
