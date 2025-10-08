@@ -13,6 +13,7 @@ type template_data struct {
 	Current_year int //common dynamic data but static in this case or more like cached data . Suppose in the navbar , we show the logo and username of the current user which is dynamic in nature but still we cache ir and then use it in the navbar rather than database or calling on every request
 	Snippet models.Snippet
 	Snippets []models.Snippet
+	Form any // to store form data validation errors
 }
 
 // create a human_date function
