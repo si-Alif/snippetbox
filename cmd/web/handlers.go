@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
-	"unicode/utf8"
 
 	"snippetbox._alif__.net/internal/models"
+	"snippetbox._alif__.net/internal/validator"
 )
 
 func (app *application) home(w http.ResponseWriter , r *http.Request){
@@ -60,7 +59,7 @@ type snippetCreateFrom struct {
 	Title string
 	Content string
 	Expires int
-	FieldErrors map[string]string
+	validator.Validator // embedded validator struct which helps us validating and managing form data validation errors
 }
 
 //create snippet
@@ -99,27 +98,14 @@ func (app *application) snippetCreatePost(w http.ResponseWriter , r *http.Reques
 		Title : r.PostForm.Get("title"),
 		Content : r.PostForm.Get("content"),
 		Expires : expires,
-		FieldErrors: map[string]string{},
 	}
 
+	form.CheckField(validator.NotBlank(form.Title) , "title" , "This field cannot be blank")
+	form.CheckField(validator.MaxChars(100 , form.Title) , "title" , "Title must not be more than 100 characters long")
+	form.CheckField(validator.NotBlank(form.Content) , "content" , "This field cannot be blank")
+	form.CheckField(validator.PermittedValue(form.Expires , 1 ,7 , 365) , "expires" , "This field must be either 1 , 7 or 365")
 
-	if strings.TrimSpace(form.Title) == ""{
-		form.FieldErrors["title"] = "This field cannot be blank"
-
-	}else if utf8.RuneCountInString(form.Title) > 100 {
-		form.FieldErrors["title"] = "This field cannot be more than 100 characters long"
-	}
-
-	if strings.TrimSpace(form.Content) == ""{
-		form.FieldErrors["content"] = "This field cannot be blank"
-
-	}
-
-	if expires != 1 && expires != 7 && expires != 365 {
-		form.FieldErrors["expires"] = "This field must be 1 or 7 or 365"
-	}
-
-	if len(form.FieldErrors) > 0 {
+	if !form.Valid() {
 		data := app.new_template_date(r)
 		data.Form = form
 		app.render(w , r , http.StatusUnprocessableEntity , "create.tmpl.html" , data)
