@@ -22,9 +22,12 @@ func (app *application) routes() http.Handler{ // as it will passed in a middlew
 	// a request to /static/favicon.ico --> stripped /static --> result /favicon.ico went to file_server
 	// --> file_server looks up at ./ui/static/favicon.ico
 
-	mux.HandleFunc("GET /{$}" , app.home)
-	mux.HandleFunc("GET /snippet/view/{id}" , app.snippetView)
-	mux.HandleFunc("GET /snippet/create" , app.snippetCreate)
+
+	dynamic := alice.New(app.sessionManager.LoadAndSave)
+
+	mux.Handle("GET /{$}" , dynamic.ThenFunc(app.home))
+	mux.Handle("GET /snippet/view/{id}" , dynamic.ThenFunc(app.snippetView))
+	mux.Handle("GET /snippet/create" , dynamic.ThenFunc(app.snippetCreate))
 
 	// POST request
 	mux.HandleFunc("POST /snippet/create" , app.snippetCreatePost)

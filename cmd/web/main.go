@@ -3,14 +3,17 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
-	"html/template"
+	"time"
 
-	"snippetbox._alif__.net/internal/models"
+	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
+	"snippetbox._alif__.net/internal/models"
 )
 
 // Define an application struct to hold the dependencies for our application used through out our entire application using struct embedding . This works as central class maintain all the dependencies of our application in a single place (Singleton Pattern applied)
@@ -19,7 +22,7 @@ type application struct {
 	snippets *models.SnippetModel
 	template_cache map[string]*template.Template
 	formDecoder *form.Decoder
-
+	sessionManager *scs.SessionManager
 }
 
 
@@ -64,11 +67,18 @@ func main(){
 	// using form decoder package for parsing and retrieving form data
 	formDecoder := form.NewDecoder()
 
+
+	// create a new instance of the session manager
+	sessionManager := scs.New()
+	sessionManager.Store = mysqlstore.New(db) // where to store our sessions
+	sessionManager.Lifetime = 12 * time.Hour
+
 	app := &application{
 		logger : logger,
 		snippets : &models.SnippetModel{DB: db}, // create a new instance of the SnippetModel struct with the connection pool as the DB field
 		template_cache: template_cache, // added the cached templated in the application dependencies struct
 		formDecoder: formDecoder,
+		sessionManager: sessionManager,
 	}
 
 
