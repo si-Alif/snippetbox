@@ -10,47 +10,55 @@ import (
 	"snippetbox._alif__.net/internal/validator"
 )
 
-func (app *application) home(w http.ResponseWriter , r *http.Request){
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
-	snippets , err := app.snippets.Latest()
+	snippets, err := app.snippets.Latest()
 
 	if err != nil {
-		app.serverError(w , r , err)
+		app.serverError(w, r, err)
 	}
 
-	data := app.new_template_date(r)
+	data := app.newTemplateData(r)
 	data.Snippets = snippets
 
-	app.render(w , r , http.StatusOK , "home.tmpl.html" ,data)
+	app.render(w, r, http.StatusOK, "home.tmpl.html", data)
 
 }
 
 // view snippet
-func (app	*application) snippetView(w http.ResponseWriter , r *http.Request){
+func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 
-	id , err := strconv.Atoi(r.PathValue("id"))
+	id, err := strconv.Atoi(r.PathValue("id"))
 
-	if err!= nil || id < 1 {
-		http.NotFound(w , r)
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
 		return
 	}
 
-	snippet , err := app.snippets.Get(id)
+	snippet, err := app.snippets.Get(id)
 
 	if err != nil {
-		if(errors.Is(err , models.ErrNoRecord)){
-			http.NotFound(w ,r )
-		}else {
-			app.serverError(w , r , err)
+		if errors.Is(err, models.ErrNoRecord) {
+			http.NotFound(w, r)
+		} else {
+			app.serverError(w, r, err)
 		}
 
 		return
 	}
 
-	data := app.new_template_date(r)
+	// retrieve request associated key-value pairs from r.Context() using sessionManager's PopString() middleware function which retrieves the valye of the key "flash" from the session and then deletes the key-value pair from the session
+
+	data := app.newTemplateData(r)
 	data.Snippet = snippet
 
-	app.render(w , r , http.StatusOK , "view.tmpl.html"  , data)
+	// ---------------------------------------------------
+	// flash := app.sessionManager.PopString(r.Context(), "flash")
+	// data.Flash = flash --> Flash been added via newTemplateData()
+	// ---------------------------------------------------
+
+
+	app.render(w, r, http.StatusOK, "view.tmpl.html", data)
 
 }
 
@@ -58,26 +66,26 @@ func (app	*application) snippetView(w http.ResponseWriter , r *http.Request){
 
 // as we added the decoder package and for it's reference where to attach certain value from the form in the struct , we added those form name & field key in the end of each one
 type snippetCreateFrom struct {
-	Title string `form:"title"`
+	Title   string `form:"title"`
 	Content string `form:"content"`
-	Expires int `form:"expires"`
+	Expires int    `form:"expires"`
 	// embedded validator struct which helps us validating and managing form data validation errors
 	validator.Validator `form:"-"` // "-" tells decoder to ignore this field
 }
 
-//create snippet
-func (app *application) snippetCreate(w http.ResponseWriter , r *http.Request){
-	data := app.new_template_date(r)
+// create snippet
+func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
 
 	data.Form = snippetCreateFrom{
 		Expires: 365,
 	}
 
-	app.render(w , r , http.StatusOK , "create.tmpl.html" , data)
+	app.render(w, r, http.StatusOK, "create.tmpl.html", data)
 
 }
 
-func (app *application) snippetCreatePost(w http.ResponseWriter , r *http.Request){
+func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
 
 	// Manual decoding & without helpers
 	//---------------------------------------------------------------
@@ -109,33 +117,38 @@ func (app *application) snippetCreatePost(w http.ResponseWriter , r *http.Reques
 
 	var form snippetCreateFrom
 
-	err := app.decodePostForm(r , &form)
+	err := app.decodePostForm(r, &form)
 
 	if err != nil {
-		app.clientError(w , http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
-	
-	form.CheckField(validator.NotBlank(form.Title) , "title" , "This field cannot be blank")
-	form.CheckField(validator.MaxChars(100 , form.Title) , "title" , "Title must not be more than 100 characters long")
-	form.CheckField(validator.NotBlank(form.Content) , "content" , "This field cannot be blank")
-	form.CheckField(validator.PermittedValue(form.Expires , 1 ,7 , 365) , "expires" , "This field must be either 1 , 7 or 365")
+	form.CheckField(validator.NotBlank(form.Title), "title", "This field cannot be blank")
+	form.CheckField(validator.MaxChars(100, form.Title), "title", "Title must not be more than 100 characters long")
+	form.CheckField(validator.NotBlank(form.Content), "content", "This field cannot be blank")
+	form.CheckField(validator.PermittedValue(form.Expires, 1, 7, 365), "expires", "This field must be either 1 , 7 or 365")
 
 	if !form.Valid() {
-		data := app.new_template_date(r)
+		data := app.newTemplateData(r)
 		data.Form = form
-		app.render(w , r , http.StatusUnprocessableEntity , "create.tmpl.html" , data)
+		app.render(w, r, http.StatusUnprocessableEntity, "create.tmpl.html", data)
 		return
 	}
 
-	id , err := app.snippets.Insert(form.Title , form.Content , form.Expires)
+	id, err := app.snippets.Insert(form.Title, form.Content, form.Expires)
 
 	if err != nil {
-		app.serverError(w , r , err)
+		app.serverError(w, r, err)
 		return
 	}
 
-	http.Redirect(w, r , fmt.Sprintf("/snippet/view/%d" , id) , http.StatusSeeOther)
+	// r.Context() is a method that returns the Context associated with the Request. A Context is an immutable object that contains values for the current request and methods to store values that can be accessed by the handlers for the current request.
+
+	// Here, we use Put() method of the session manager to store a key-value pair in the session. The key is "flash" and the value is "Snippet Created Successfully". The value will be available in the next request and can be accessed using the session manager's Get() method.
+
+	app.sessionManager.Put(r.Context(), "flash", "Snippet Created Successfully")
+
+	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 
 }

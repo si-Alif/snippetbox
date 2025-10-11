@@ -30,7 +30,7 @@ func (app *application) routes() http.Handler{ // as it will passed in a middlew
 	mux.Handle("GET /snippet/create" , dynamic.ThenFunc(app.snippetCreate))
 
 	// POST request
-	mux.HandleFunc("POST /snippet/create" , app.snippetCreatePost)
+	mux.Handle("POST /snippet/create" , dynamic.ThenFunc(app.snippetCreatePost))
 
 	// return app.recoverPanic(app.logRequest(commonHeaders(mux))) // returns a http.Handler
 

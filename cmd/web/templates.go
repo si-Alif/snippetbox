@@ -14,6 +14,7 @@ type template_data struct {
 	Snippet models.Snippet
 	Snippets []models.Snippet
 	Form any // to store form data validation errors
+	Flash string // to store flash messages
 }
 
 // create a human_date function
