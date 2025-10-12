@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"html/template"
@@ -79,11 +80,22 @@ func main(){
 		sessionManager: sessionManager,
 	}
 
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.X25519 , tls.CurveP256},
+	}
+
 	// defining our own http server struct
 	srv := &http.Server{
 		Addr: *addr,
 		Handler: app.routes(),
 		ErrorLog: slog.NewLogLogger(logger.Handler() , slog.LevelError),
+		TLSConfig: tlsConfig,
+		// for what time being the connection will be kept alive before closing for client's idleness . This is important to keep for safe data transfer and nullify security concerns , also we keep the connection alive for some moment cause performing TCP handshakes on every request is expensive and may cause performance issues . So it's good to keep the connection alive for some time before closing it
+		IdleTimeout: time.Minute,
+
+		// setting the read and write timeout to 5 and 10 seconds respectively .
+		ReadTimeout: 5 * time.Second, // Setting a short ReadTimeout period helps to mitigate the risk from slow-client attacks
+		WriteTimeout: 10 * time.Second, 
 	}
 
 	// take the HTTP address we got from terminal and show an output message using the custom logger and start the server
