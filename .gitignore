@@ -28,4 +28,7 @@ go.work.sum
 # log files
 /tmp
 
+
 *.pem
+*.key
+*.crt

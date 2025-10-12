@@ -69,6 +69,7 @@ func main(){
 	sessionManager := scs.New()
 	sessionManager.Store = mysqlstore.New(db) // where to store our sessions
 	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
 
 	app := &application{
 		logger : logger,
@@ -94,7 +95,7 @@ func main(){
 	// err := http.ListenAndServe(*addr , mux)
 
 	// as the route is now abstracted , we now store call the routes() method which returns a pointer to a serveMux containing all the routes
-	err = srv.ListenAndServe()
+	err = srv.ListenAndServeTLS("./tls/cert.pem" , "./tls/key.pem")
 
 	if err!= nil{
 		logger.Error(err.Error())
