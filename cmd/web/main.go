@@ -81,17 +81,22 @@ func main(){
 		sessionManager: sessionManager,
 	}
 
+	// defining our own http server struct
+	srv := &http.Server{
+		Addr: *addr,
+		Handler: app.routes(),
+	}
 
 	// take the HTTP address we got from terminal and show an output message using the custom logger and start the server
 	//1️⃣ logger.Info("Starting server on " , "addr" , *addr)
 	// 2️⃣ instead of providing the hashmap's key-value pairs like above in a variadic manner , we can use different slog.<data_type>() methods for safer data passing and parsing
-	logger.Info("Starting server on :- " , slog.String("addr" , *addr))
+	logger.Info("Starting server on :- " , slog.String("addr" , srv.Addr))
 
 	// formerly , all the routes were configured here and the serveMux that was containing all them was passed here
 	// err := http.ListenAndServe(*addr , mux)
 
 	// as the route is now abstracted , we now store call the routes() method which returns a pointer to a serveMux containing all the routes
-	err = http.ListenAndServe(*addr , app.routes())
+	err = srv.ListenAndServe()
 
 	if err!= nil{
 		logger.Error(err.Error())
