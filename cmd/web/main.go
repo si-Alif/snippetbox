@@ -41,10 +41,7 @@ func main(){
 	// ✅logger := slog.New(slog.NewTextHandler(os.Stdout , nil))
 
 	// we can modify this further and add what more info we want in our output
-	logger := slog.New(slog.NewJSONHandler(os.Stdout , &slog.HandlerOptions{
-		Level: slog.LevelDebug ,
-		AddSource: true,
-	}))
+	logger := slog.New(slog.NewTextHandler(os.Stdout  , nil))
 
 	// opens the db connection and stores the connection pool in the db variable
 	db , err := openDB(*dsn)
@@ -85,6 +82,7 @@ func main(){
 	srv := &http.Server{
 		Addr: *addr,
 		Handler: app.routes(),
+		ErrorLog: slog.NewLogLogger(logger.Handler() , slog.LevelError),
 	}
 
 	// take the HTTP address we got from terminal and show an output message using the custom logger and start the server
