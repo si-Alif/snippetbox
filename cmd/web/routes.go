@@ -22,7 +22,6 @@ func (app *application) routes() http.Handler{ // as it will passed in a middlew
 	// a request to /static/favicon.ico --> stripped /static --> result /favicon.ico went to file_server
 	// --> file_server looks up at ./ui/static/favicon.ico
 
-
 	dynamic := alice.New(app.sessionManager.LoadAndSave)
 
 	mux.Handle("GET /{$}" , dynamic.ThenFunc(app.home))
@@ -32,8 +31,18 @@ func (app *application) routes() http.Handler{ // as it will passed in a middlew
 	// POST request
 	mux.Handle("POST /snippet/create" , dynamic.ThenFunc(app.snippetCreatePost))
 
-	// return app.recoverPanic(app.logRequest(commonHeaders(mux))) // returns a http.Handler
 
+
+
+	// All the authentication related routes
+	mux.Handle("GET /user/signup" , dynamic.ThenFunc(app.userSignup))
+	mux.Handle("POST /user/signup" , dynamic.ThenFunc(app.userSignupPost))
+	mux.Handle("GET /user/login" , dynamic.ThenFunc(app.userLogin))
+	mux.Handle("POST /user/login" , dynamic.ThenFunc(app.userLoginPost))
+	mux.Handle("POST /user/logout" , dynamic.ThenFunc(app.userLogoutPost))
+
+
+	// return app.recoverPanic(app.logRequest(commonHeaders(mux))) // returns a http.Handler
 	standard := alice.New(app.recoverPanic , app.logRequest , commonHeaders)
 
 	return standard.Then(mux)
