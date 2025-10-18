@@ -21,6 +21,7 @@ import (
 type application struct {
 	logger *slog.Logger
 	snippets *models.SnippetModel
+	users *models.UserModel
 	template_cache map[string]*template.Template
 	formDecoder *form.Decoder
 	sessionManager *scs.SessionManager
@@ -75,6 +76,7 @@ func main(){
 	app := &application{
 		logger : logger,
 		snippets : &models.SnippetModel{DB: db}, // create a new instance of the SnippetModel struct with the connection pool as the DB field
+		users: &models.UserModel{DB: db},
 		template_cache: template_cache, // added the cached templated in the application dependencies struct
 		formDecoder: formDecoder,
 		sessionManager: sessionManager,
@@ -95,7 +97,7 @@ func main(){
 
 		// setting the read and write timeout to 5 and 10 seconds respectively .
 		ReadTimeout: 5 * time.Second, // Setting a short ReadTimeout period helps to mitigate the risk from slow-client attacks
-		WriteTimeout: 10 * time.Second, 
+		WriteTimeout: 10 * time.Second,
 	}
 
 	// take the HTTP address we got from terminal and show an output message using the custom logger and start the server
