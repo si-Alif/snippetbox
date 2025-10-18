@@ -1,10 +1,13 @@
 package validator
 
 import (
+	"regexp"
 	"slices"
 	"strings"
 	"unicode/utf8"
 )
+
+var EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 type Validator struct {
 	FieldErrors map[string]string
@@ -41,8 +44,18 @@ func MaxChars(cnt int , s string) bool {
 	return utf8.RuneCountInString(s) <= cnt
 }
 
+func MinChars (cnt int , s string) bool {
+	return utf8.RuneCountInString(s) >= cnt
+}
 
-//comparing generic types and their counts 
+
+//comparing generic types and their counts
 func PermittedValue[Comp comparable](vals Comp , permittedVals ...Comp) bool {
 	return slices.Contains(permittedVals , vals)
+}
+
+
+// check if the provided string is a valid email address or not by comparing it with a regular expression
+func Matches (value string , r *regexp.Regexp) bool{
+	return r.MatchString(value)
 }
