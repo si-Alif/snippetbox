@@ -2,7 +2,12 @@ package models
 
 import (
 	"database/sql"
+	"errors"
+	"strings"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -20,7 +25,33 @@ type UserModel struct {
 
 
 func (um *UserModel) Insert(name string , email string , password string) error {
+	hashed_password , err := bcrypt.GenerateFromPassword([]byte(password)  ,12)
+
+	if err != nil {
+		return err
+	}
+
+	stmnt := `INSERT INTO users (name , email , hashed_password , created) VALUES (? , ? , ? , UTC_TIMESTAMP())`
+
+	// pass the byte array of the hashed password to the database as a string
+	_, err = um.DB.Exec(stmnt , name , email , string(hashed_password))
+
+	var mySQLerr *mysql.MySQLError
+
+	if err != nil {
+		if errors.As(err , &mySQLerr){
+
+			if mySQLerr.Number == 1062 && strings.Contains(mySQLerr.Message , "users_uc_email"){
+				return ErrDuplicateEmail
+			}
+
+			return  mySQLerr
+		}
+		return err
+	}
+
 	return nil
+
 }
 
 func (um *UserModel) Authenticate(email string , password string) (int , error){

@@ -197,7 +197,25 @@ func (app *application) userSignupPost(w http.ResponseWriter , r *http.Request){
 		return
 	}
 
-	fmt.Fprintln(w , "Sign up user...")
+	err = app.users.Insert(form.Name , form.Email , form.Password)
+
+	if err != nil {
+		if errors.Is(err , models.ErrDuplicateEmail){
+			form.AddFieldError("email" , "Email address already in use")
+			data := app.newTemplateData(r)
+
+			data.Form = form
+
+			app.render(w , r , http.StatusUnprocessableEntity , "signup.tmpl.html" , data)
+		}else {
+			app.serverError(w , r , err)
+		}
+		return
+	}
+
+	app.sessionManager.Put(r.Context() , "flash" , "You've Successfully been signed up in snippetbox")
+
+	http.Redirect(w , r , "/user/login" , http.StatusSeeOther)
 
 }
 
