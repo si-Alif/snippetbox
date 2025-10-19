@@ -164,6 +164,12 @@ type userSignupForm struct {
 	validator.Validator `form:"-"`
 }
 
+type userLoginForm struct {
+	Email string `form:"email"`
+	Password string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 
 func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
@@ -220,7 +226,10 @@ func (app *application) userSignupPost(w http.ResponseWriter , r *http.Request){
 }
 
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w , "Display login page...")
+	data := app.newTemplateData(r)
+	data.Form = userLoginForm{}
+	app.render(w , r , http.StatusOK , "login.tmpl.html" , data)
+
 }
 
 func (app *application) userLoginPost(w http.ResponseWriter , r *http.Request){
