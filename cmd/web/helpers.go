@@ -56,10 +56,13 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 
 }
 
+
+// this automatically adds these fields in the instance of template_data
 func (app *application) newTemplateData(r *http.Request) template_data {
 	return template_data{
 		Current_year: time.Now().Year(),
 		Flash : app.sessionManager.PopString(r.Context(), "flash"),
+		IsAuthenticated: app.isAuthenticated(r),
 	}
 }
 
@@ -83,4 +86,11 @@ func (app *application) decodePostForm(r *http.Request, dst any) error {
 
 	return nil
 
+}
+
+
+// Authorization check
+
+func (app *application) isAuthenticated(r *http.Request) bool {
+	return app.sessionManager.Exists(r.Context() , "authenticatedUserID")
 }
