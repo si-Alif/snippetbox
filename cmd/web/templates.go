@@ -2,10 +2,14 @@ package main
 
 import (
 	"html/template"
+	"io/fs"
 	"path/filepath"
+
 	"time"
 
+
 	"snippetbox._alif__.net/internal/models"
+	"snippetbox._alif__.net/ui"
 )
 
 
@@ -38,14 +42,25 @@ func newTemplatecache() (map[string]*template.Template , error){
 
 	cache := map[string]*template.Template{}
 
+	/* ------
+	-> we won't cache files anymore by retrieving them from the disk rather we would retrieve them from the embedded file system in the memory
+
 	pages , err := filepath.Glob("./ui/html/pages/*.tmpl.html") // returns a slice of file names matching the pattern "./ui/html/pages/*.tmpl.html"
+
+	*/
+
+	pages , err := fs.Glob(ui.Files , "html/pages/*.tmpl.html")
 
 	if err!= nil{
 		return nil , err
 	}
 
+
 	for _ , page := range pages{
 		name := filepath.Base(page) // returns the last element of the path means whatever is after the last slash in the path which is indeed the filename
+
+		/*
+		--> we won't cache files anymore by retrieving them from the disk rather we would retrieve them from the embedded file system in the memory
 
 		// instantiate a new template set with our custom made template functionalities library
 		ts , err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl.html") // first and foremost parse the base template and store it's struct in ts
@@ -68,9 +83,26 @@ func newTemplatecache() (map[string]*template.Template , error){
 
 		cache[name] = ts
 
+		*/
+
+		patterns := []string{
+			"html/base.tmpl.html",
+			"html/partials/*.tmpl.html",
+			page,
+		}
+
+		ts , err := template.New(name).Funcs(functions).ParseFS(ui.Files , patterns...)
+
+		if err != nil{
+			return nil , err
+		}
+
+		cache[name] = ts
+
 	}
 
 	return cache , nil
 
 }
+
 
