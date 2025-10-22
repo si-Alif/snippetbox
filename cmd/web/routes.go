@@ -2,6 +2,9 @@ package main
 
 import (
 	"net/http"
+
+	"snippetbox._alif__.net/ui"
+
 	"github.com/justinas/alice"
 )
 
@@ -14,6 +17,9 @@ func (app *application) routes() http.Handler{ // as it will passed in a middlew
 
 	mux := http.NewServeMux()
 
+	/*--------------------------
+	We'll use embedded files from memory rather than loading them from the disk
+
 	//create a file server which will serve contents from the ./ui/static directory
 	file_server := http.FileServer(http.Dir("./ui/static/")) // this will a sub-tree path
 
@@ -21,6 +27,10 @@ func (app *application) routes() http.Handler{ // as it will passed in a middlew
 	mux.Handle("GET /static/" , http.StripPrefix("/static" , file_server))
 	// a request to /static/favicon.ico --> stripped /static --> result /favicon.ico went to file_server
 	// --> file_server looks up at ./ui/static/favicon.ico
+
+	--------------------------*/
+
+	mux.Handle("GET /static/" , http.FileServerFS(ui.Files))
 
 	dynamic := alice.New(app.sessionManager.LoadAndSave , noSurf , app.authenticate)
 
