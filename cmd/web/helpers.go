@@ -57,14 +57,13 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 
 }
 
-
 // this automatically adds these fields in the instance of template_data
 func (app *application) newTemplateData(r *http.Request) template_data {
 	return template_data{
-		Current_year: time.Now().Year(),
-		Flash : app.sessionManager.PopString(r.Context(), "flash"),
+		Current_year:    time.Now().Year(),
+		Flash:           app.sessionManager.PopString(r.Context(), "flash"),
 		IsAuthenticated: app.isAuthenticated(r),
-		CSRFToken : nosurf.Token(r) ,  // on instantiation of template_data , this field will be added
+		CSRFToken:       nosurf.Token(r), // on instantiation of template_data , this field will be added
 	}
 }
 
@@ -90,9 +89,13 @@ func (app *application) decodePostForm(r *http.Request, dst any) error {
 
 }
 
-
 // Authorization check
 
 func (app *application) isAuthenticated(r *http.Request) bool {
-	return app.sessionManager.Exists(r.Context() , "authenticatedUserID")
+	isAuthenticated, ok := r.Context().Value(isAuthenticatedContextKey).(bool)
+	if !ok {
+		return false
+	}
+
+	return isAuthenticated
 }
