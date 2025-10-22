@@ -16,6 +16,7 @@ type template_data struct {
 	Form any // to store form data validation errors
 	Flash string // to store flash messages
 	IsAuthenticated bool
+	CSRFToken string
 }
 
 // create a human_date function

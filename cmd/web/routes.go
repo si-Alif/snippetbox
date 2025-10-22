@@ -22,7 +22,7 @@ func (app *application) routes() http.Handler{ // as it will passed in a middlew
 	// a request to /static/favicon.ico --> stripped /static --> result /favicon.ico went to file_server
 	// --> file_server looks up at ./ui/static/favicon.ico
 
-	dynamic := alice.New(app.sessionManager.LoadAndSave)
+	dynamic := alice.New(app.sessionManager.LoadAndSave , noSurf)
 
 	// ----------------
 
