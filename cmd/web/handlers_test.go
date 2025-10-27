@@ -1,11 +1,7 @@
 package main
 
 import (
-	"bytes"
-	"io"
-	"log/slog"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"snippetbox._alif__.net/internal/assert"
@@ -46,32 +42,16 @@ func TestPing(t *testing.T){
 ------ */
 
 func TestPing(t *testing.T){
-	app := &application{
-		logger: slog.New(slog.DiscardHandler),
-	}
 
-	ts := httptest.NewTLSServer(app.routes())
+	app := newTestApplication(t)
+
+	ts := newTestServer(t , app.routes())
 
 	defer ts.Close()
 
-	res , err := ts.Client().Get(ts.URL + "/ping")
+	code , _ , body := ts.get(t , "/ping")
 
-	if err !=nil {
-		t.Fatal(err)
-	}
-
-	assert.Equal(t , res.StatusCode , http.StatusOK)
-	defer res.Body.Close()
-
-	body , err := io.ReadAll(res.Body)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	body = bytes.TrimSpace(body)
-	
-	assert.Equal(t , string(body) , "OK")
-
+	assert.Equal(t , code , http.StatusOK)
+	assert.Equal(t , body , "OK")
 
 }
