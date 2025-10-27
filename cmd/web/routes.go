@@ -32,6 +32,8 @@ func (app *application) routes() http.Handler{ // as it will passed in a middlew
 
 	mux.Handle("GET /static/" , http.FileServerFS(ui.Files))
 
+	mux.HandleFunc("GET /ping" , ping)
+
 	dynamic := alice.New(app.sessionManager.LoadAndSave , noSurf , app.authenticate)
 
 	// ----------------

@@ -3,12 +3,16 @@ package main
 import (
 	"bytes"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"snippetbox._alif__.net/internal/assert"
 )
+
+/* ----- Unit Tests
+
 
 func TestPing(t *testing.T){
 	rr := httptest.NewRecorder() // new recorder to record HTTP response instead of using htt.ResponseWriter to get the output out of the handler
@@ -36,5 +40,38 @@ func TestPing(t *testing.T){
 	body = bytes.TrimSpace(body) // remove trailing spaces if any from the body
 
 	assert.Equal(t , string(body) , "OK")
+
+}
+
+------ */
+
+func TestPing(t *testing.T){
+	app := &application{
+		logger: slog.New(slog.DiscardHandler),
+	}
+
+	ts := httptest.NewTLSServer(app.routes())
+
+	defer ts.Close()
+
+	res , err := ts.Client().Get(ts.URL + "/ping")
+
+	if err !=nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t , res.StatusCode , http.StatusOK)
+	defer res.Body.Close()
+
+	body , err := io.ReadAll(res.Body)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	body = bytes.TrimSpace(body)
+	
+	assert.Equal(t , string(body) , "OK")
+
 
 }
